@@ -14,8 +14,8 @@ public class ChessPanel extends JPanel {
 	private JButton[][] board;
 	private ChessModel model;
 
-	ImageIcon[] bIcons;
-	ImageIcon[] wIcons;
+	private ImageIcon[] bIcons;
+	private ImageIcon[] wIcons;
 
 	private JButton reset;
 	private JButton undo;
@@ -56,6 +56,7 @@ public class ChessPanel extends JPanel {
 		reset();
 	}
 
+	//Populates the GUI grid and add's listener's to each square
 	private void createBoard(JPanel panel, ButtonListener listener) {
 		Color[] colors = { Color.RED, Color.LIGHT_GRAY};
 		JButton b;
@@ -72,30 +73,32 @@ public class ChessPanel extends JPanel {
 		}
 	}
 
-	public JButton buttonAt(Square s) {
+	private JButton buttonAt(Square s) {
 		return board[s.row][s.column];
 	}
 
+
+	//Load all of the images for the pieces
 	private void createChessIcons() {
 		// Sets the ImageIcon for the Black Player Pieces
-		ImageIcon bRook = new ImageIcon("./src/bRook.png");
-		ImageIcon bKnight = new ImageIcon("./src/bKnight.png");
-		ImageIcon bBishop = new ImageIcon("./src/bBishop.png");
-		ImageIcon bQueen = new ImageIcon("./src/bQueen.png");
-		ImageIcon bKing = new ImageIcon("./src/bKing.png");
-		ImageIcon bPawn = new ImageIcon("./src/bPawn.png");
-		ImageIcon wRook = new ImageIcon("./src/wRook.png");
-		ImageIcon wKnight = new ImageIcon("./src/wKnight.png");
-		ImageIcon wBishop = new ImageIcon("./src/wBishop.png");
-		ImageIcon wQueen = new ImageIcon("./src/wQueen.png");
-		ImageIcon wKing = new ImageIcon("./src/wKing.png");
-		ImageIcon wPawn = new ImageIcon("./src/wPawn.png");
+		ImageIcon bRook = new ImageIcon("./src/images/bRook.png");
+		ImageIcon bKnight = new ImageIcon("./src/images/bKnight.png");
+		ImageIcon bBishop = new ImageIcon("./src/images/bBishop.png");
+		ImageIcon bQueen = new ImageIcon("./src/images/bQueen.png");
+		ImageIcon bKing = new ImageIcon("./src/images/bKing.png");
+		ImageIcon bPawn = new ImageIcon("./src/images/bPawn.png");
+		ImageIcon wRook = new ImageIcon("./src/images/wRook.png");
+		ImageIcon wKnight = new ImageIcon("./src/images/wKnight.png");
+		ImageIcon wBishop = new ImageIcon("./src/images/wBishop.png");
+		ImageIcon wQueen = new ImageIcon("./src/images/wQueen.png");
+		ImageIcon wKing = new ImageIcon("./src/images/wKing.png");
+		ImageIcon wPawn = new ImageIcon("./src/images/wPawn.png");
 
-		ImageIcon[] bIcons = { bRook, bKnight, bBishop, bQueen, bKing, bBishop, bKnight, bRook, bPawn };
-		this.bIcons = bIcons;
+		ImageIcon[] blackIcons = { bRook, bKnight, bBishop, bQueen, bKing, bBishop, bKnight, bRook, bPawn };
+		this.bIcons = blackIcons;
 
-		ImageIcon[] wIcons = { wRook, wKnight, wBishop, wQueen, wKing, wBishop, wKnight, wRook, wPawn };
-		this.wIcons = wIcons;
+		ImageIcon[] whiteIcons = { wRook, wKnight, wBishop, wQueen, wKing, wBishop, wKnight, wRook, wPawn };
+		this.wIcons = whiteIcons;
 
 	}
 
@@ -130,6 +133,7 @@ public class ChessPanel extends JPanel {
 		turn.setText("Turn: " + model.currentPlayer());
 	}
 
+
 	private void promote(Square s) {
 		if (model.pieceAt(s).player().equals(Player.WHITE)) {
 			buttonAt(s).setIcon(wIcons[3]);
@@ -140,9 +144,10 @@ public class ChessPanel extends JPanel {
 	}
 
 	private void move(Move m) {
+		//Move the piece Icon
 		m.fromPieceIcon = (ImageIcon) buttonAt(m.from).getIcon();
 		m.toPieceIcon = (ImageIcon) buttonAt(m.to).getIcon();
-		playerSound(model.currentPlayer(), m);
+
 		model.move(m);
 		
 		if (model.promote(m.to)) {
@@ -155,6 +160,7 @@ public class ChessPanel extends JPanel {
 		moveHistory.add(m);
 	}
 
+	//Erases the last move
 	private void undoMove() {
 		if (moveHistory.size() > 0) {
 			int n = moveHistory.size() - 1;
@@ -172,6 +178,7 @@ public class ChessPanel extends JPanel {
 		}
 	}
 
+	//Sets the messageCode variable to proper prompt when invoked
 	private void displayMessage(IChessPiece piece) {
 		if (messageCode == 1) {
 			JOptionPane.showMessageDialog(null, "It is not your turn.");
@@ -200,12 +207,13 @@ public class ChessPanel extends JPanel {
 		}
 	}
 
+	//Handles all of the prompting and logic when the game is over
 	private void gameOverDialog() {
+
 		int confirm = JOptionPane.showOptionDialog(null, "Would you like to play again?", "Game Over",
 				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
 		if (confirm == JOptionPane.YES_OPTION) {
-			
 			reset();
 		}
 		if (confirm == JOptionPane.NO_OPTION || confirm == JOptionPane.CLOSED_OPTION) {
@@ -224,28 +232,29 @@ public class ChessPanel extends JPanel {
 		return null;
 	}
 	
-	public boolean moveToOpponentPiece( Move move)
+	private boolean moveToOpponentPiece( Move move)
 	{
 		if(move.toPiece != null){
+			playerSound(model.currentPlayer());
 			return true;
 		}
 		return false;
 	}
 	
-	private void playerSound(Player player, Move move){
+	private void playerSound(Player player){
 		String filename = "";
-		 if(player == Player.WHITE && moveToOpponentPiece(move)){
-		 	filename = "mario_here_we_go.wav";
+		 if(player == Player.WHITE){
+		 	filename = "audio/mario_here_we_go.wav";
 		 	
 		 }
-		 
-		 if(player == Player.BLACK && moveToOpponentPiece(move)){
-		 	filename = "mparty8_luigi_02.wav";
+
+		 if(player == Player.BLACK){
+		 	filename = "audio/mparty8_luigi_02.wav";
 		 	
 		 }
 		 
 		 if(model.inCheck(player) && model.isCheckMate()){
-			 filename = "smb_gameover.wav";
+			 filename = "audio/smb_gameover.wav";
 		 }
 		
 		try {
@@ -259,7 +268,8 @@ public class ChessPanel extends JPanel {
          clip.start();
       } catch (UnsupportedAudioFileException e) {
          e.printStackTrace();
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
          e.printStackTrace();
       } catch (LineUnavailableException e) {
          e.printStackTrace();
@@ -283,9 +293,8 @@ public class ChessPanel extends JPanel {
 		public void actionPerformed(ActionEvent event) {
 			Move thisMove;
 			Square toSquare;
-			
-			
 
+			//Reset's game when new game is clicked
 			if (reset == event.getSource()) {
 
 				if (fromTo == true) {
@@ -293,14 +302,18 @@ public class ChessPanel extends JPanel {
 					buttonAt(eventSquare).setBackground(backgroundColor);
 				}
 
+				//Show Prompt for starting a new game
 				int confirm = JOptionPane.showOptionDialog(null, "Are you sure you want to start a new game?",
 						"Reset Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,
 						null);
+
+				//Reset's game if yes was clicked
 				if (confirm == JOptionPane.YES_OPTION) {
 					reset();
 				}
 			}
 
+			//perform Logic for Undo Button
 			if (undo == event.getSource()) {
 				if (fromTo == true) {
 					fromTo = false;
@@ -309,6 +322,7 @@ public class ChessPanel extends JPanel {
 				undoMove();
 			}
 
+			//If there's a piece on the cell clicked
 			eventSquare = getEventSquare(event);
 			if (eventSquare != null) {
 				if (!fromTo) {
@@ -334,6 +348,9 @@ public class ChessPanel extends JPanel {
 					thisMove = new Move(fromSquare, toSquare);
 					if (model.isValidMove(thisMove)) {
 
+						if(moveToOpponentPiece(thisMove)){
+							playerSound(model.currentPlayer());
+						}
 						move(thisMove);
 
 						model.setNextPlayer();
@@ -343,7 +360,7 @@ public class ChessPanel extends JPanel {
 
 							if (model.isCheckMate()) {
 								messageCode = 3;
-								playerSound(model.currentPlayer(), thisMove);
+								playerSound(model.currentPlayer());
 							}
 						}
 

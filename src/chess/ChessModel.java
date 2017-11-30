@@ -2,7 +2,6 @@ package chess;
 
 import java.util.*;
 
-
 public class ChessModel implements IChessModel {
 	private IChessPiece[][] board;
 	private Player player;
@@ -68,6 +67,7 @@ public class ChessModel implements IChessModel {
 		}
 	}
 
+	//Promotes pawn to queen if reaches end of board
 	public boolean promote(Square s) {
 		if (pieceAt(s).type().equals("Pawn")) {
 			if (s.row == 0 || s.row == 7) {
@@ -116,9 +116,10 @@ public class ChessModel implements IChessModel {
 
 		if (fromPiece.isValidMove(m, board)) {
 			valid = true;
-			inCheck1 = inCheck(player); // Checks to see if the
-										// player's in check before
-										// the move
+
+			// Checks to see if the player's in check before the move
+			inCheck1 = inCheck(player);
+
 			if (inCheck1) { // In check before move
 				valid = false;
 				messageCode = 1;
