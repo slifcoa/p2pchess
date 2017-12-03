@@ -29,17 +29,6 @@ public abstract class ChessPiece implements IChessPiece {
 		return owner;
 	}
 
-	/* -------------------------------------------------------------------------
-	 * A valid move for any chess piece, in general, must satisfy the following
-	 * requirements:
-	 *    1) Every move, in general, involves two distinctly different squares
-	 *       on the board;
-	 *    2) The "from" square must contain a chess piece;
-	 *    3) The "to" square is either exclusively empty or it contains a chess
-	 *       piece of the opposite color, which is subsequently taken, i.e.
-	 *       removed from play, and no longer on the board.
-	 * -------------------------------------------------------------------------
-	 */	
 	public boolean isValidMove(Move move, IChessPiece[][] board)
 	{	
 		return	move.isValid( ) &&
@@ -52,14 +41,6 @@ public abstract class ChessPiece implements IChessPiece {
 		return board[move.from.row][move.from.column].player() != board[move.to.row][move.to.column].player();
 	}
 
-	/* -------------------------------------------------------------------------
-	 * The overEmptySquares returns :
-	 *    1) true - if all squares exclusively between the "from" square and the
-	 *              "to" square are empty.
-	 *    2) false - if at least one square between the "from" square and the
-	 *               "to" square is occupied.
-	 * -------------------------------------------------------------------------
-	 */	
 	protected boolean overEmptySquares( Move move, IChessPiece[][] board)
 	{
 		Square unit = move.from.unitStepSquare(move.to);
@@ -78,3 +59,4 @@ public abstract class ChessPiece implements IChessPiece {
 	}
 
 }
+

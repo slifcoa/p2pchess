@@ -1,5 +1,7 @@
 package chess;
 
+import com.sun.deploy.panel.JSmartTextArea;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -7,6 +9,8 @@ import javax.swing.*;
 import java.io.*;
 import java.net.URL;
 import javax.sound.sampled.*;
+
+import static java.awt.GridBagConstraints.*;
 
 
 public class ChessPanel extends JPanel {
@@ -19,41 +23,78 @@ public class ChessPanel extends JPanel {
 
 	private JButton reset;
 	private JButton undo;
+	private JButton disconnect;
 	private JLabel turn;
 	private int messageCode;
 
+	private JPanel boardpanel;
+	private JPanel buttonpanel;
+	private JPanel eastPanel;
+
+	private JPanel chatPanel;
+    private JTextArea output;
+    private JTextField input;
+
 	private ArrayList<Move> moveHistory;
 
-	public ChessPanel() {
+	public ChessPanel(ChessModel model) {
+
+		this.model = model;
 
 		ButtonListener buttonListener = new ButtonListener();
 
-		JPanel boardpanel = new JPanel();
-		boardpanel.setPreferredSize(new Dimension(600, 600));
-		boardpanel.setLayout(new GridLayout(8, 8, 1, 1));
-		createBoard(boardpanel, buttonListener);
-		add(boardpanel, BorderLayout.WEST);
+		//Create JPanel for chess board
+		this.boardpanel = new JPanel(new BorderLayout());
+		this.boardpanel.setPreferredSize(new Dimension(600, 600));
+		this.boardpanel.setLayout(new GridLayout(8, 8, 1, 1));
+		this.createBoard(this.boardpanel, buttonListener);
+		this.add(boardpanel, BorderLayout.WEST);
 
-		JPanel buttonpanel = new JPanel();
-		buttonpanel.setLayout(new BoxLayout(buttonpanel, BoxLayout.Y_AXIS));
-		add(buttonpanel);
-		
+		//Create JPanel for Buttons
+		this.buttonpanel = new JPanel(new GridLayout(4,1,16,16));
+		this.buttonpanel.setPreferredSize(new Dimension(200, 300));
+
+		//Create and add Reset Button
 		reset = new JButton("Reset Game");
-		reset.addActionListener(buttonListener);
-		buttonpanel.add(reset);
-		buttonpanel.add(Box.createRigidArea(new Dimension(0,20)));
+		this.reset.addActionListener(buttonListener);
+		this.buttonpanel.add(this.reset);
 
+		//Create and add Undo Button
 		undo = new JButton("Undo Move");
-		undo.addActionListener(buttonListener);
-		buttonpanel.add(undo);
-		buttonpanel.add(Box.createRigidArea(new Dimension(0,20)));
-		
-		turn = new JLabel("Turn: ");
-		turn.setForeground(Color.WHITE);
-		buttonpanel.add(turn);
+		this.undo.addActionListener(buttonListener);
+		this.buttonpanel.add(this.undo);
 
-		createChessIcons();
-		reset();
+		//Create and add disconnect button
+		disconnect = new JButton("Disconnect");
+		this.disconnect.addActionListener(buttonListener);
+		this.buttonpanel.add(this.disconnect);
+
+		//Create and add Turn Label
+		turn = new JLabel("Turn: ");
+		this.turn.setForeground(Color.WHITE);
+		this.buttonpanel.add(this.turn);
+
+		//Create panel for Chat messenger
+		this.chatPanel = new JPanel(new BorderLayout());
+		this.chatPanel.setPreferredSize(new Dimension(200,300));
+
+		this.output = new JTextArea();
+		this.input = new JTextField();
+
+		//this.output.set
+		this.output.setEditable(false);
+		this.chatPanel.add(this.output);
+		this.chatPanel.add(this.input, BorderLayout.SOUTH);
+
+		//Create parent panel for Button and Chat Panel
+		this.eastPanel = new JPanel(new BorderLayout());
+		this.eastPanel.add(this.buttonpanel, BorderLayout.NORTH);
+		this.eastPanel.add(this.chatPanel, BorderLayout.SOUTH);
+		this.add(this.eastPanel, BorderLayout.EAST);
+
+		this.createChessIcons();
+		this.reset();
+
 	}
 
 	//Populates the GUI grid and add's listener's to each square
@@ -74,9 +115,8 @@ public class ChessPanel extends JPanel {
 	}
 
 	private JButton buttonAt(Square s) {
-		return board[s.row][s.column];
+		return this.board[s.row][s.column];
 	}
-
 
 	//Load all of the images for the pieces
 	private void createChessIcons() {
@@ -99,9 +139,9 @@ public class ChessPanel extends JPanel {
 
 		ImageIcon[] whiteIcons = { wRook, wKnight, wBishop, wQueen, wKing, wBishop, wKnight, wRook, wPawn };
 		this.wIcons = whiteIcons;
-
 	}
 
+	//Resets the Icon pieces back to starting positions
 	private void reset() {
 		model = new ChessModel();
 		moveHistory = new ArrayList<Move>();
@@ -128,12 +168,13 @@ public class ChessPanel extends JPanel {
 			this.board[6][c].setIcon(wIcons[8]);
 		}
 	}
-	
+
+	//Updates turn JLabel when invoked
 	private void setTurn(){
 		turn.setText("Turn: " + model.currentPlayer());
 	}
 
-
+	//Promotes the pawn Icon to a queen Icon
 	private void promote(Square s) {
 		if (model.pieceAt(s).player().equals(Player.WHITE)) {
 			buttonAt(s).setIcon(wIcons[3]);
@@ -143,21 +184,24 @@ public class ChessPanel extends JPanel {
 		}
 	}
 
+	//Moves the Icon piece
 	private void move(Move m) {
 		//Move the piece Icon
 		m.fromPieceIcon = (ImageIcon) buttonAt(m.from).getIcon();
 		m.toPieceIcon = (ImageIcon) buttonAt(m.to).getIcon();
 
-		model.move(m);
+		this.model.move(m);
 		
 		if (model.promote(m.to)) {
 			promote(m.to);
 		} else {
 			buttonAt(m.to).setIcon(m.fromPieceIcon);
 		}
-		buttonAt(m.from).setIcon(null);
 
-		moveHistory.add(m);
+		//set previous location of piece to null
+		this.buttonAt(m.from).setIcon(null);
+		//add the move to history
+        this.moveHistory.add(m);
 	}
 
 	//Erases the last move
@@ -171,7 +215,6 @@ public class ChessPanel extends JPanel {
 			buttonAt(m.from).setIcon(m.fromPieceIcon);
 			buttonAt(m.to).setIcon(m.toPieceIcon);
 
-	
 			model.setNextPlayer();
 			setTurn();
 			moveHistory.remove(m);
@@ -182,27 +225,31 @@ public class ChessPanel extends JPanel {
 	private void displayMessage(IChessPiece piece) {
 		if (messageCode == 1) {
 			JOptionPane.showMessageDialog(null, "It is not your turn.");
-		} else if (messageCode == 2) {
+		}
+		else if (messageCode == 2) {
 			if (model.currentPlayer() == Player.WHITE) {
 				JOptionPane.showMessageDialog(null, "White is in check.");
-			} else if (model.currentPlayer() == Player.BLACK) {
+			}
+			else if (model.currentPlayer() == Player.BLACK) {
 				JOptionPane.showMessageDialog(null, "Black is in check.");
 			}
-		} else if (messageCode == 3) {
-
+		}
+		else if (messageCode == 3) {
 			if (model.currentPlayer() == Player.WHITE) {
 				JOptionPane.showMessageDialog(null, "CheckMate: Black wins");
-			} else if (model.currentPlayer() == Player.BLACK) {
+			}
+			else if (model.currentPlayer() == Player.BLACK) {
 				JOptionPane.showMessageDialog(null, "CheckMate: White wins");
 			}
-
-			gameOverDialog();
-		} else if (model.getMessage() == 1) {
+			this.gameOverDialog();
+		}
+		else if (model.getMessage() == 1) {
 			JOptionPane.showMessageDialog(null, "Invalid move; the King is placed in check.");
-		} else if (model.getMessage() == 2) {
-
+		}
+		else if (model.getMessage() == 2) {
 			JOptionPane.showMessageDialog(null, "Invalid move; the King remains in check.");
-		} else if (model.getMessage() == 3) {
+		}
+		else if (model.getMessage() == 3) {
 			JOptionPane.showMessageDialog(null, "" + piece.type() + ":  Invalid move.");
 		}
 	}
@@ -214,13 +261,14 @@ public class ChessPanel extends JPanel {
 				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
 		if (confirm == JOptionPane.YES_OPTION) {
-			reset();
+			this.reset();
 		}
 		if (confirm == JOptionPane.NO_OPTION || confirm == JOptionPane.CLOSED_OPTION) {
 			System.exit(1);
 		}
 	}
 
+	//Returns the square on the grid of selected piece
 	private Square getEventSquare(ActionEvent event) {
 		for (int r = 0; r < 8; r++) {
 			for (int c = 0; c < 8; c++) {
@@ -231,39 +279,39 @@ public class ChessPanel extends JPanel {
 		}
 		return null;
 	}
-	
+
+	//Checks to see if there is an opponent piece at new position
 	private boolean moveToOpponentPiece( Move move)
 	{
 		if(move.toPiece != null){
-			playerSound(model.currentPlayer());
+			playerSound(this.model.currentPlayer());
 			return true;
 		}
 		return false;
 	}
-	
-	private void playerSound(Player player){
-		String filename = "";
-		 if(player == Player.WHITE){
-		 	filename = "audio/mario_here_we_go.wav";
-		 	
+
+	//Method that handles playing correct audio when invoked
+	private void playerSound(Player p){
+		String file = "";
+		 if(p == Player.WHITE){
+		 	file = "audio/mario_here_we_go.wav";
 		 }
 
-		 if(player == Player.BLACK){
-		 	filename = "audio/mparty8_luigi_02.wav";
-		 	
+		 if(p == Player.BLACK){
+		 	file = "audio/mparty8_luigi_02.wav";
 		 }
 		 
-		 if(model.inCheck(player) && model.isCheckMate()){
-			 filename = "audio/smb_gameover.wav";
+		 if(this.model.inCheck(p) && this.model.isCheckMate()){
+			 file = "audio/smb_gameover.wav";
 		 }
 		
 		try {
          // Open an audio input stream.
-         URL url = this.getClass().getClassLoader().getResource(filename);
+         URL url = this.getClass().getClassLoader().getResource(file);
          AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
          // Get a sound clip resource.
          Clip clip = AudioSystem.getClip();
-         // Open audio clip and load samples from the audio input stream.
+         // Open audio clip and load from the audio input stream.
          clip.open(audioIn);
          clip.start();
       } catch (UnsupportedAudioFileException e) {
@@ -276,14 +324,13 @@ public class ChessPanel extends JPanel {
       }
 		
 	}
-	
-	
 
 	// inner class that represents action listener for buttons
 	private class ButtonListener implements ActionListener {
+
 		Square fromSquare;
-		Color backgroundColor;
 		Square eventSquare;
+		Color backgroundColor;
 		boolean fromTo;
 
 		public ButtonListener() {
@@ -297,10 +344,7 @@ public class ChessPanel extends JPanel {
 			//Reset's game when new game is clicked
 			if (reset == event.getSource()) {
 
-				if (fromTo == true) {
 					fromTo = false;
-					buttonAt(eventSquare).setBackground(backgroundColor);
-				}
 
 				//Show Prompt for starting a new game
 				int confirm = JOptionPane.showOptionDialog(null, "Are you sure you want to start a new game?",
@@ -322,6 +366,11 @@ public class ChessPanel extends JPanel {
 				undoMove();
 			}
 
+			//perform Logic for disconnect button
+			if(disconnect == event.getSource()){
+				System.exit(0);
+			}
+
 			//If there's a piece on the cell clicked
 			eventSquare = getEventSquare(event);
 			if (eventSquare != null) {
@@ -335,12 +384,14 @@ public class ChessPanel extends JPanel {
 							buttonAt(fromSquare).setBackground(Color.BLUE);
 							messageCode = 0;
 							fromTo = true;
-						} else {
+						}
+						else {
 							messageCode = 1;
 							displayMessage(model.pieceAt(fromSquare));
 						}
 					}
-				} else if (fromTo) {
+				}
+				else if (fromTo) {
 
 					buttonAt(fromSquare).setBackground(backgroundColor);
 					toSquare = eventSquare;
@@ -351,9 +402,9 @@ public class ChessPanel extends JPanel {
 						if(moveToOpponentPiece(thisMove)){
 							playerSound(model.currentPlayer());
 						}
-						move(thisMove);
 
-						model.setNextPlayer();
+						move(thisMove);
+                        model.setNextPlayer();
 
 						if (model.inCheck(model.currentPlayer())) {
 							messageCode = 2;
@@ -368,7 +419,6 @@ public class ChessPanel extends JPanel {
 					fromTo = false;
 					displayMessage(model.pieceAt(fromSquare));
 					setTurn();
-					
 				}
 			}
 		}
