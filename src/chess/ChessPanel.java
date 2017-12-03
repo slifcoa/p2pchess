@@ -24,6 +24,8 @@ public class ChessPanel extends JPanel {
 	private JButton reset;
 	private JButton undo;
 	private JButton disconnect;
+	//todo test button replace later with letting user host game on specific port
+	private JButton hostTest;
 	private JLabel turn;
 	private int messageCode;
 
@@ -36,6 +38,9 @@ public class ChessPanel extends JPanel {
     private JTextField input;
 
 	private ArrayList<Move> moveHistory;
+
+	/*server connection handler*/
+	private ServerConnHandler serverConnHandler;
 
 	public ChessPanel(ChessModel model) {
 
@@ -53,6 +58,11 @@ public class ChessPanel extends JPanel {
 		//Create JPanel for Buttons
 		this.buttonpanel = new JPanel(new GridLayout(4,1,16,16));
 		this.buttonpanel.setPreferredSize(new Dimension(200, 300));
+
+		//todo replace this functionality with joptionpane that hosts on specified port
+		hostTest = new JButton("Host on port 8415");
+		this.hostTest.addActionListener(buttonListener);
+		this.buttonpanel.add(this.hostTest);
 
 		//Create and add Reset Button
 		reset = new JButton("Reset Game");
@@ -325,6 +335,35 @@ public class ChessPanel extends JPanel {
 		
 	}
 
+	/*sets server connection handler for panel*/
+	public void setServerConnHandler(ServerConnHandler serverConnHandler){
+		this.serverConnHandler = serverConnHandler;
+	}
+
+	/*Call this method after player selects host game and enters in port number to host on*/
+	public void hostGame(int port) throws Exception {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				ConnectionHandler conn = new ConnectionHandler();
+				//main param saying they opted to host a game
+				String[] host = {"host"};
+				try {
+					serverConnHandler.setServer(port);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				conn.setServerConn(serverConnHandler);
+				try {
+					//connectoin handler main method, so the GUI doesnt freeze
+					conn.main(host);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}
+
 	// inner class that represents action listener for buttons
 	private class ButtonListener implements ActionListener {
 
@@ -340,6 +379,15 @@ public class ChessPanel extends JPanel {
 		public void actionPerformed(ActionEvent event) {
 			Move thisMove;
 			Square toSquare;
+
+			//todo delete this button later
+			if(hostTest == event.getSource()){
+				try {
+					hostGame(8415);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 
 			//Reset's game when new game is clicked
 			if (reset == event.getSource()) {

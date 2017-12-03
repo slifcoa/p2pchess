@@ -3,7 +3,7 @@ package chess;
 import javax.swing.*;
 
 public class ChessGUI {
-	public static void main(String[] args){
+	public static void main(String[] args) throws Exception {
 		ChessGUI game = new ChessGUI();
 
 		game.setLookFeel();
@@ -52,7 +52,7 @@ public class ChessGUI {
 		}
 	}
 
-	private static void createGame(){
+	private static void createGame() throws Exception {
 		//Set title and register exit button
 		JFrame frame = new JFrame("Multiplayer Chess Game By The Gankster Boys");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,6 +60,12 @@ public class ChessGUI {
 		//Instantiate the panel and populate frame with grid
 		ChessModel model = new ChessModel();
 		ChessPanel panel = new ChessPanel(model);
+
+		//setup server connection handler
+		ServerConnHandler serverConn = new ServerConnHandler(panel);
+		panel.setServerConnHandler(serverConn);
+
+
 		frame.getContentPane().add( panel);
 
 		frame.pack();
