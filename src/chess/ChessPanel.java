@@ -1,16 +1,13 @@
 package chess;
 
-import com.sun.deploy.panel.JSmartTextArea;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-import javax.swing.*;
-import java.io.*;
-import java.net.URL;
 import javax.sound.sampled.*;
-
-import static java.awt.GridBagConstraints.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
 
 
 public class ChessPanel extends JPanel {
@@ -90,6 +87,7 @@ public class ChessPanel extends JPanel {
 
 		this.output = new JTextArea();
 		this.input = new JTextField();
+		this.input.addActionListener(buttonListener);
 
 		//this.output.set
 		this.output.setEditable(false);
@@ -413,6 +411,10 @@ public class ChessPanel extends JPanel {
 				}
 				undoMove();
 			}
+			if (input == event.getSource()){
+				outputMessage(input.getText());
+				input.setText("");
+			}
 
 			//perform Logic for disconnect button
 			if(disconnect == event.getSource()){
@@ -470,6 +472,11 @@ public class ChessPanel extends JPanel {
 				}
 			}
 		}
+	}
+
+	//Method that puts text into the output Console
+	public void outputMessage(String myMessage){
+		output.append(myMessage + "\n");
 	}
 
 }
