@@ -343,7 +343,7 @@ public class ChessPanel extends JPanel {
 	/*Call this method after player selects host game and enters in port number to host on*/
 	public void hostGame(int port) throws Exception {
 
-		myServer = new ServerHanlder(this.output);
+		myServer = new ServerHanlder(this.output,this);
 		Thread newThread = new Thread(myServer);
 		newThread.start();
 		/*
@@ -408,7 +408,8 @@ public class ChessPanel extends JPanel {
 
 			//Reset's game when new game is clicked
 			if (reset == event.getSource()) {
-
+				movePiece();
+				/*
 					fromTo = false;
 
 				//Show Prompt for starting a new game
@@ -419,7 +420,7 @@ public class ChessPanel extends JPanel {
 				//Reset's game if yes was clicked
 				if (confirm == JOptionPane.YES_OPTION) {
 					reset();
-				}
+				}*/
 			}
 
 			//perform Logic for Undo Button
@@ -496,6 +497,10 @@ public class ChessPanel extends JPanel {
 	//Method that puts text into the output Console
 	public void outputMessage(String myMessage){
 		output.append(myMessage + "\n");
+	}
+	public void movePiece(){
+		board[6][0].doClick();
+		board[5][0].doClick();
 	}
 
 }

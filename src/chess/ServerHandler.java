@@ -28,9 +28,11 @@ class ServerHanlder implements Runnable{
     protected boolean       isRunning       =   true;
     protected Thread        runningThread;
     JTextArea myOuput;
+    ChessPanel myBoard;
 
-    public ServerHanlder(JTextArea pointerToOutput) {
+    public ServerHanlder(JTextArea pointerToOutput, ChessPanel pointerBoard) {
         this.myOuput = pointerToOutput;
+        myBoard = pointerBoard;
     }
 
     /******************************************************************
@@ -70,6 +72,9 @@ class ServerHanlder implements Runnable{
                 fromClient = inFromClient.readUTF();
                 DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
                 outputMessage(fromClient);
+                if(fromClient.startsWith("You")){
+                    myBoard.movePiece();
+                }
                 outToClient.writeUTF("Server 404OK");
             }
         }
