@@ -11,6 +11,10 @@ import java.util.ArrayList;
 
 
 public class ChessPanel extends JPanel {
+	//todo maybe do something with this
+	HostConnection hostConn;
+	FindConnection findConn;
+	Boolean isHost = false;
 
 	//menu items for connecting to games
 	private JMenuBar menuBar;
@@ -26,7 +30,7 @@ public class ChessPanel extends JPanel {
 
 	private JButton reset;
 	private JButton undo;
-	private JButton disconnect;
+	protected JButton disconnect;
 	//todo test button replace later with letting user host game on specific port
 	private JButton hostTest;
 	private JLabel turn;
@@ -43,8 +47,8 @@ public class ChessPanel extends JPanel {
 	private ArrayList<Move> moveHistory;
 
 	/*server connection handler*/
-	private ServerConnHandler serverConnHandler;
-	private ServerHanlder myServer;
+	private HostConnection serverConnHandler;
+	private ServerHandler myServer;
 	private ClientHandler meClient;
 
 	public ChessPanel(ChessModel model) {
@@ -219,7 +223,7 @@ public class ChessPanel extends JPanel {
 	}
 
 	//Moves the Icon piece
-	private void move(Move m) {
+	protected void move(Move m) {
 		//Move the piece Icon
 		m.fromPieceIcon = (ImageIcon) buttonAt(m.from).getIcon();
 		m.toPieceIcon = (ImageIcon) buttonAt(m.to).getIcon();
@@ -360,16 +364,23 @@ public class ChessPanel extends JPanel {
 	}
 
 	/*sets server connection handler for panel*/
-	public void setServerConnHandler(ServerConnHandler serverConnHandler){
+	public void setServerConnHandler(HostConnection serverConnHandler){
 		this.serverConnHandler = serverConnHandler;
 	}
 
 	/*Call this method after player selects host game and enters in port number to host on*/
 	public void hostGame(int port) throws Exception {
 
-		myServer = new ServerHanlder(this.output,this);
-		Thread newThread = new Thread(myServer);
+//		myServer = new ServerHandler(this.output,this);
+//		myServer.connSockNum = port;
+//		Thread newThread = new Thread(myServer);
+//		newThread.start();
+		hostConn = new HostConnection(this.output, this);
+		hostConn.connSockNum = port;
+		Thread newThread = new Thread(hostConn);
 		newThread.start();
+		isHost = true;
+
 		/*
 		new Thread(new Runnable() {
 			@Override
@@ -394,15 +405,18 @@ public class ChessPanel extends JPanel {
 		*/
 	}
 
-	public void connectGame(){
-		if(meClient == null){
-			meClient = new ClientHandler();
-			meClient.connect();
-		}
-		else{
-			outputMessage("Already Connected");
-			meClient.sendToServer("You there?");
-		}
+	public void connectGame(String IP, int port){
+//		if(meClient == null){
+//			meClient = new ClientHandler(IP, port);
+//			meClient.connect();
+//		}
+//		else{
+//			outputMessage("Already Connected");
+//			meClient.sendToServer("You there?");
+//		}
+		findConn = new FindConnection(IP, port, this.output, this);
+		Thread newThread2 = new Thread(findConn);
+		newThread2.start();
 	}
 
 	// inner class that represents action listener for buttons
@@ -462,6 +476,7 @@ public class ChessPanel extends JPanel {
 				if (result == JOptionPane.OK_OPTION) {
 					try {
 						//todo create findGame() method like hostGame implementation
+						connectGame(serverAddress.getText(), Integer.parseInt(portNumber.getText()));
 						hostGameItem.setEnabled(false);
 						findGameItem.setEnabled(false);
 					} catch (Exception e) {
@@ -484,7 +499,7 @@ public class ChessPanel extends JPanel {
 
 			//Reset's game when new game is clicked
 			if (reset == event.getSource()) {
-				movePiece();
+//				movePiece();
 				/*
 					fromTo = false;
 
@@ -509,12 +524,31 @@ public class ChessPanel extends JPanel {
 			}
 			if (input == event.getSource()){
 				outputMessage(input.getText());
+				if(isHost)
+					hostConn.sendChat(input.getText());
+				else
+					findConn.sendChat(input.getText());
+
 				input.setText("");
 			}
 
 			//perform Logic for disconnect button
 			if(disconnect == event.getSource()){
-				connectGame();
+				if(isHost) {
+					hostConn.meClient.sendToServer("Move");
+				}
+				else
+					findConn.meClient.sendToServer("Move");
+//				connectGame();
+//				if(meClient == null){
+//					meClient = new ClientHandler("localhost", 8417);
+//					meClient.connect();
+//				}
+//				else{
+//					outputMessage("Already Connected");
+//					meClient.sendToServer("You there?");
+//				}
+
 			}
 
 			//If there's a piece on the cell clicked
@@ -550,6 +584,15 @@ public class ChessPanel extends JPanel {
 						}
 
 						move(thisMove);
+						//send move over connection
+						if(isHost){
+							hostConn.sendMove(fromSquare.row, fromSquare.column, toSquare.row, toSquare.column);
+						}
+						else {
+							findConn.sendMove(fromSquare.row, fromSquare.column, toSquare.row, toSquare.column);
+						}
+
+
                         model.setNextPlayer();
 
 						if (model.inCheck(model.currentPlayer())) {
@@ -574,9 +617,9 @@ public class ChessPanel extends JPanel {
 	public void outputMessage(String myMessage){
 		output.append(myMessage + "\n");
 	}
-	public void movePiece(){
-		board[6][0].doClick();
-		board[5][0].doClick();
+	public void movePiece(int x1, int y1, int x2, int y2){
+		board[x1][y1].doClick();
+		board[x2][y2].doClick();
 	}
 
 }
