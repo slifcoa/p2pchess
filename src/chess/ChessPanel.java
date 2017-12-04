@@ -12,6 +12,12 @@ import java.util.ArrayList;
 
 public class ChessPanel extends JPanel {
 
+	//menu items for connecting to games
+	private JMenuBar menuBar;
+	private JMenu connectMenu;
+	private JMenuItem hostGameItem;
+	private JMenuItem findGameItem;
+
 	private JButton[][] board;
 	private ChessModel model;
 
@@ -42,10 +48,28 @@ public class ChessPanel extends JPanel {
 	private ClientHandler meClient;
 
 	public ChessPanel(ChessModel model) {
+		menuBar = new JMenuBar();
+		//Build the first menu.
+		connectMenu = new JMenu("Play Online");
+		menuBar.add(connectMenu);
+
+//a group of JMenuItems
+		hostGameItem = new JMenuItem("Host Game");
+		findGameItem = new JMenuItem("Find Game");
+		connectMenu.add(hostGameItem);
+		connectMenu.add(findGameItem);
 
 		this.model = model;
 
 		ButtonListener buttonListener = new ButtonListener();
+		//set listeners for menu items
+		hostGameItem.addActionListener(buttonListener);
+		findGameItem.addActionListener(buttonListener);
+
+		//set ChessPanel layout
+		this.setLayout(new BorderLayout());
+		//add menu to panel
+		this.add(menuBar, BorderLayout.NORTH);
 
 		//Create JPanel for chess board
 		this.boardpanel = new JPanel(new BorderLayout());
@@ -396,6 +420,58 @@ public class ChessPanel extends JPanel {
 		public void actionPerformed(ActionEvent event) {
 			Move thisMove;
 			Square toSquare;
+
+			if(hostGameItem == event.getSource()){
+				//create custom joptionpane
+				JTextField userName = new JTextField();
+				JTextField portNumber = new JTextField();
+				final JComponent[] inputs = new JComponent[] {
+						new JLabel("Username"),
+						userName,
+						new JLabel("Port Number"),
+						portNumber
+				};
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Enter username and port number to host on.", JOptionPane.PLAIN_MESSAGE);
+				if (result == JOptionPane.OK_OPTION) {
+					try {
+						hostGame(Integer.parseInt(portNumber.getText()));
+						hostGameItem.setEnabled(false);
+						findGameItem.setEnabled(false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} //dont really need this seecond part else {
+//					System.out.println("User canceled / closed the dialog, result = " + result);
+//				}
+			}
+
+			if(findGameItem == event.getSource()){
+				//create custom joptionpane
+				JTextField userName = new JTextField();
+				JTextField portNumber = new JTextField();
+				JTextField serverAddress = new JTextField();
+				final JComponent[] inputs = new JComponent[] {
+						new JLabel("Username"),
+						userName,
+						new JLabel("Server IP (localhost is 127.0.0.1)"),
+						serverAddress,
+						new JLabel("Port Number"),
+						portNumber
+				};
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Find Game", JOptionPane.PLAIN_MESSAGE);
+				if (result == JOptionPane.OK_OPTION) {
+					try {
+						//todo create findGame() method like hostGame implementation
+						hostGameItem.setEnabled(false);
+						findGameItem.setEnabled(false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} //dont really need this seecond part else {
+//					System.out.println("User canceled / closed the dialog, result = " + result);
+//				}
+			}
+
 
 			//todo delete this button later
 			if(hostTest == event.getSource()){
