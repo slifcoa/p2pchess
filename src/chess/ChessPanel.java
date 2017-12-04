@@ -9,11 +9,19 @@ import javax.swing.*;
 import java.io.*;
 import java.net.URL;
 import javax.sound.sampled.*;
+import javax.swing.border.Border;
 
 import static java.awt.GridBagConstraints.*;
 
 
 public class ChessPanel extends JPanel {
+
+	//menu items for connecting to games
+	private JMenuBar menuBar;
+	private JMenu connectMenu;
+	private JMenuItem hostGameItem;
+	private JMenuItem findGameItem;
+
 
 	private JButton[][] board;
 	private ChessModel model;
@@ -39,14 +47,34 @@ public class ChessPanel extends JPanel {
 
 	private ArrayList<Move> moveHistory;
 
+	private boolean isHost = false;
+	private boolean isClient = false;
+
 	/*server connection handler*/
 	private ServerConnHandler serverConnHandler;
 
 	public ChessPanel(ChessModel model) {
+		menuBar = new JMenuBar();
+		//Build the first menu.
+		connectMenu = new JMenu("Play Online");
+		menuBar.add(connectMenu);
+
+//a group of JMenuItems
+		hostGameItem = new JMenuItem("Host Game");
+		findGameItem = new JMenuItem("Find Game");
+		connectMenu.add(hostGameItem);
+		connectMenu.add(findGameItem);
+
+
 
 		this.model = model;
 
 		ButtonListener buttonListener = new ButtonListener();
+		hostGameItem.addActionListener(buttonListener);
+
+		//add jmenu to panel
+		this.setLayout(new BorderLayout());
+		this.add(menuBar, BorderLayout.NORTH);
 
 		//Create JPanel for chess board
 		this.boardpanel = new JPanel(new BorderLayout());
@@ -104,7 +132,6 @@ public class ChessPanel extends JPanel {
 
 		this.createChessIcons();
 		this.reset();
-
 	}
 
 	//Populates the GUI grid and add's listener's to each square
@@ -345,23 +372,15 @@ public class ChessPanel extends JPanel {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				ConnectionHandler conn = new ConnectionHandler();
-				//main param saying they opted to host a game
-				String[] host = {"host"};
 				try {
 					serverConnHandler.setServer(port);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				conn.setServerConn(serverConnHandler);
-				try {
-					//connectoin handler main method, so the GUI doesnt freeze
-					conn.main(host);
+					serverConnHandler.run();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}).start();
+		isHost = true;
 	}
 
 	// inner class that represents action listener for buttons
@@ -380,13 +399,55 @@ public class ChessPanel extends JPanel {
 			Move thisMove;
 			Square toSquare;
 
-			//todo delete this button later
-			if(hostTest == event.getSource()){
-				try {
-					hostGame(8415);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			if(hostGameItem == event.getSource()){
+				//create custom joptionpane
+				JTextField userName = new JTextField();
+				JTextField portNumber = new JTextField();
+				final JComponent[] inputs = new JComponent[] {
+						new JLabel("Username"),
+						userName,
+						new JLabel("Port Number"),
+						portNumber
+				};
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Enter username and port number to host on.", JOptionPane.PLAIN_MESSAGE);
+				if (result == JOptionPane.OK_OPTION) {
+					try {
+						hostGame(Integer.parseInt(portNumber.getText()));
+						hostGameItem.setEnabled(false);
+						findGameItem.setEnabled(false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} //dont really need this seecond part else {
+//					System.out.println("User canceled / closed the dialog, result = " + result);
+//				}
+			}
+
+			if(findGameItem == event.getSource()){
+				//create custom joptionpane
+				JTextField userName = new JTextField();
+				JTextField portNumber = new JTextField();
+				JTextField serverAddress = new JTextField();
+				final JComponent[] inputs = new JComponent[] {
+						new JLabel("Username"),
+						userName,
+						new JLabel("Server IP (localhost is 127.0.0.1)"),
+						serverAddress,
+						new JLabel("Port Number"),
+						portNumber
+				};
+				int result = JOptionPane.showConfirmDialog(null, inputs, "Find Game", JOptionPane.PLAIN_MESSAGE);
+				if (result == JOptionPane.OK_OPTION) {
+					try {
+						//todo create findGame() method like hostGame implementation
+						hostGameItem.setEnabled(false);
+						findGameItem.setEnabled(false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} //dont really need this seecond part else {
+//					System.out.println("User canceled / closed the dialog, result = " + result);
+//				}
 			}
 
 			//Reset's game when new game is clicked
@@ -398,6 +459,7 @@ public class ChessPanel extends JPanel {
 				int confirm = JOptionPane.showOptionDialog(null, "Are you sure you want to start a new game?",
 						"Reset Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null,
 						null);
+
 
 				//Reset's game if yes was clicked
 				if (confirm == JOptionPane.YES_OPTION) {
