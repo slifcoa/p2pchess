@@ -38,6 +38,8 @@ public class ChessPanel extends JPanel {
 
 	/*server connection handler*/
 	private ServerConnHandler serverConnHandler;
+	private ServerHanlder myServer;
+	private ClientHandler meClient;
 
 	public ChessPanel(ChessModel model) {
 
@@ -340,6 +342,11 @@ public class ChessPanel extends JPanel {
 
 	/*Call this method after player selects host game and enters in port number to host on*/
 	public void hostGame(int port) throws Exception {
+
+		myServer = new ServerHanlder(this.output);
+		Thread newThread = new Thread(myServer);
+		newThread.start();
+		/*
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -360,6 +367,18 @@ public class ChessPanel extends JPanel {
 				}
 			}
 		}).start();
+		*/
+	}
+
+	public void connectGame(){
+		if(meClient == null){
+			meClient = new ClientHandler();
+			meClient.connect();
+		}
+		else{
+			outputMessage("Already Connected");
+			meClient.sendToServer("You there?");
+		}
 	}
 
 	// inner class that represents action listener for buttons
@@ -418,7 +437,7 @@ public class ChessPanel extends JPanel {
 
 			//perform Logic for disconnect button
 			if(disconnect == event.getSource()){
-				System.exit(0);
+				connectGame();
 			}
 
 			//If there's a piece on the cell clicked
