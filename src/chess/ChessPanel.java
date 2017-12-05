@@ -386,11 +386,6 @@ public class ChessPanel extends JPanel {
 		
 	}
 
-	/*sets server connection handler for panel*/
-	public void setServerConnHandler(HostConnection serverConnHandler){
-		this.serverConnHandler = serverConnHandler;
-	}
-
 	/*Call this method after player selects host game and enters in port number to host on*/
 	public void hostGame(int port) throws Exception {
 
@@ -591,9 +586,5 @@ public class ChessPanel extends JPanel {
 		output.append(myMessage + "\n");
 	}
 
-	public void movePiece(int x1, int y1, int x2, int y2){
-		board[x1][y1].doClick();
-		board[x2][y2].doClick();
-	}
 
 }

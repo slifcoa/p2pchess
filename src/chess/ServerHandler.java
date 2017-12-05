@@ -1,5 +1,5 @@
 package chess;
-
+//TODO DELETE THIS CLASS IT IS NOT USED
 import com.sun.net.ssl.internal.ssl.Provider;
 
 import javax.net.ServerSocketFactory;

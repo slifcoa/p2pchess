@@ -50,7 +50,7 @@ public class ClientHandler extends Observable {
         try {
            // clientSocket = new Socket(IP, port);
             SSLSocketFactory sslSocketFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-            clientSocket = (SSLSocket) sslSocketFactory.createSocket("127.0.0.1", 8415);
+            clientSocket = (SSLSocket) sslSocketFactory.createSocket(IP, port);
 
 
             myOutput = new DataOutputStream(clientSocket.getOutputStream());
