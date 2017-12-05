@@ -5,6 +5,7 @@ import com.sun.net.ssl.internal.ssl.Provider;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+
 import javax.net.ssl.SSLSocketFactory;
 
 import javax.swing.*;
@@ -32,8 +33,12 @@ class ServerHandler implements Runnable{
     /* socket the sever uses */
     protected int           connSockNum     =   8415;
     protected ServerSocket  myServer;
+
+    protected SSLSocket     clientSocket;
+
     //protected Socket        clientSocket;
     protected SSLSocket clientSocket;
+
     protected boolean       isRunning       =   true;
     protected Thread        runningThread;
     JTextArea myOuput;
@@ -52,6 +57,19 @@ class ServerHandler implements Runnable{
             this.runningThread = Thread.currentThread();
         }
 
+        {
+            // Registering the JSSE provider
+            Security.addProvider(new Provider());
+
+            //Specifying the Keystore details
+            System.setProperty("javax.net.ssl.keyStore","myKey.ks");
+            System.setProperty("javax.net.ssl.keyStorePassword","baseball");
+
+            // Enable debugging to view the handshake and communication which happens between the SSLClient and the SSLServer
+            // System.setProperty("javax.net.debug","all");
+        }
+        try{
+
         //Registering the JSSE provider
         Security.addProvider(new Provider());
 
@@ -69,6 +87,8 @@ class ServerHandler implements Runnable{
         outputMessage("Hosting Game on \n " + myServer.getInetAddress() + ":8415");
         while(isRunning){
             try {
+
+                clientSocket = (SSLSocket) this.myServer.accept();
                 //clientSocket = this.myServer.accept();
                 clientSocket = (SSLSocket)this.myServer.accept();
             } catch (IOException e){
@@ -88,6 +108,14 @@ class ServerHandler implements Runnable{
         boolean ClientConnected = true;
         while(ClientConnected) {
                 DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
+
+                String fromClient="";
+                try {
+                    fromClient = inFromClient.readUTF();
+                } catch (Exception e )
+                {
+                    System.out.print(e.getMessage());
+
                 // String fromClient;
                 //fromClient = inFromClient.readUTF();
 
