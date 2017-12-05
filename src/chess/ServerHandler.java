@@ -5,6 +5,9 @@ import com.sun.net.ssl.internal.ssl.Provider;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+
+import javax.net.ssl.SSLSocketFactory;
+
 import javax.swing.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -26,17 +29,22 @@ import java.security.Security;
  *
  * @version October 2017
  ******************************************************************/
-class ServerHanlder implements Runnable{
+class ServerHandler implements Runnable{
     /* socket the sever uses */
     protected int           connSockNum     =   8415;
     protected ServerSocket  myServer;
+
     protected SSLSocket     clientSocket;
+
+    //protected Socket        clientSocket;
+    protected SSLSocket clientSocket;
+
     protected boolean       isRunning       =   true;
     protected Thread        runningThread;
     JTextArea myOuput;
     ChessPanel myBoard;
 
-    public ServerHanlder(JTextArea pointerToOutput, ChessPanel pointerBoard) {
+    public ServerHandler(JTextArea pointerToOutput, ChessPanel pointerBoard) {
         this.myOuput = pointerToOutput;
         myBoard = pointerBoard;
     }
@@ -48,6 +56,7 @@ class ServerHanlder implements Runnable{
         synchronized (this) {
             this.runningThread = Thread.currentThread();
         }
+
         {
             // Registering the JSSE provider
             Security.addProvider(new Provider());
@@ -60,6 +69,16 @@ class ServerHanlder implements Runnable{
             // System.setProperty("javax.net.debug","all");
         }
         try{
+
+        //Registering the JSSE provider
+        Security.addProvider(new Provider());
+
+        //Specifying the Keystore details
+        System.getProperty("javax.net.ssl.trustStore", "myKey.ks");
+        System.getProperty("javax.net.ssl.trustStorePassword", "baseball");
+
+        try{
+            //myServer = new ServerSocket(this.connSockNum);
             ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
             myServer = socketFactory.createServerSocket(this.connSockNum);
         } catch (IOException e){
@@ -68,7 +87,10 @@ class ServerHanlder implements Runnable{
         outputMessage("Hosting Game on \n " + myServer.getInetAddress() + ":8415");
         while(isRunning){
             try {
+
                 clientSocket = (SSLSocket) this.myServer.accept();
+                //clientSocket = this.myServer.accept();
+                clientSocket = (SSLSocket)this.myServer.accept();
             } catch (IOException e){
                 throw new RuntimeException("Error Accepting Client", e);
             }
@@ -86,18 +108,28 @@ class ServerHanlder implements Runnable{
         boolean ClientConnected = true;
         while(ClientConnected) {
                 DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
+
                 String fromClient="";
                 try {
                     fromClient = inFromClient.readUTF();
                 } catch (Exception e )
                 {
                     System.out.print(e.getMessage());
+
+                // String fromClient;
+                //fromClient = inFromClient.readUTF();
+
+                String fromClient="";
+                try {
+                    fromClient = inFromClient.readUTF();
+                } catch (Exception e){
+                    System.out.println(e.getMessage());
                 }
                 DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
                 outputMessage(fromClient);
-                if(fromClient.startsWith("You")){
-                    myBoard.movePiece();
-                }
+//                if(fromClient.startsWith("You")){
+//                    myBoard.movePiece();
+//                }
                 outToClient.writeUTF("Server 404OK");
             }
         }

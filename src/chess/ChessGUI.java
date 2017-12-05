@@ -62,8 +62,8 @@ public class ChessGUI {
 		ChessPanel panel = new ChessPanel(model);
 
 		//setup server connection handler
-		ServerConnHandler serverConn = new ServerConnHandler(panel);
-		panel.setServerConnHandler(serverConn);
+//		HostConnection serverConn = new HostConnection(panel);
+//		panel.setServerConnHandler(serverConn);
 
 
 		frame.getContentPane().add( panel);
