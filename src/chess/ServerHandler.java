@@ -1,11 +1,19 @@
 package chess;
 
+import com.sun.net.ssl.internal.ssl.Provider;
+
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import javax.swing.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Security;
 
 /****************************************************************
  * Server application that can connect to several clients at a
@@ -24,7 +32,8 @@ class ServerHandler implements Runnable{
     /* socket the sever uses */
     protected int           connSockNum     =   8415;
     protected ServerSocket  myServer;
-    protected Socket        clientSocket;
+    //protected Socket        clientSocket;
+    protected SSLSocket clientSocket;
     protected boolean       isRunning       =   true;
     protected Thread        runningThread;
     JTextArea myOuput;
@@ -42,15 +51,26 @@ class ServerHandler implements Runnable{
         synchronized (this) {
             this.runningThread = Thread.currentThread();
         }
+
+        //Registering the JSSE provider
+        Security.addProvider(new Provider());
+
+        //Specifying the Keystore details
+        System.getProperty("javax.net.ssl.trustStore", "myKey.ks");
+        System.getProperty("javax.net.ssl.trustStorePassword", "baseball");
+
         try{
-            myServer = new ServerSocket(this.connSockNum);
+            //myServer = new ServerSocket(this.connSockNum);
+            ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
+            myServer = socketFactory.createServerSocket(this.connSockNum);
         } catch (IOException e){
             throw new RuntimeException("Cannot Open Port 8415", e);
         }
         outputMessage("Hosting Game on \n " + myServer.getInetAddress() + ":8415");
         while(isRunning){
             try {
-                clientSocket = this.myServer.accept();
+                //clientSocket = this.myServer.accept();
+                clientSocket = (SSLSocket)this.myServer.accept();
             } catch (IOException e){
                 throw new RuntimeException("Error Accepting Client", e);
             }
@@ -68,8 +88,15 @@ class ServerHandler implements Runnable{
         boolean ClientConnected = true;
         while(ClientConnected) {
                 DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
-                String fromClient;
-                fromClient = inFromClient.readUTF();
+                // String fromClient;
+                //fromClient = inFromClient.readUTF();
+
+                String fromClient="";
+                try {
+                    fromClient = inFromClient.readUTF();
+                } catch (Exception e){
+                    System.out.println(e.getMessage());
+                }
                 DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
                 outputMessage(fromClient);
 //                if(fromClient.startsWith("You")){

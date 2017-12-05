@@ -60,7 +60,7 @@ public class ChessPanel extends JPanel {
 		connectMenu = new JMenu("Play Online");
 		menuBar.add(connectMenu);
 
-//a group of JMenuItems
+		//a group of JMenuItems
 		hostGameItem = new JMenuItem("Host Game");
 		findGameItem = new JMenuItem("Find Game");
 		connectMenu.add(hostGameItem);
