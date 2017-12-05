@@ -35,8 +35,6 @@ public class ClientHandler extends Observable {
     }
 
     public boolean connect(){
-
-        {
             // Registering the JSSE provider
             Security.addProvider(new Provider());
 
@@ -46,18 +44,7 @@ public class ClientHandler extends Observable {
 
             // Enable debugging to view the handshake and communication which happens between the SSLClient and the SSLServer
             // System.setProperty("javax.net.debug","all");
-        }
         //Lets pretend they typed in 127.0.0.1:8415
-        try {
-            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            clientSocket = (SSLSocket) sslSocketFactory.createSocket("127.0.0.1",8415);
-
-        //Registering the JSSE provider
-        Security.addProvider(new Provider());
-
-        //Specifying the Keystore details
-        System.getProperty("javax.net.ssl.trustStore", "myKey.ks");
-        System.getProperty("javax.net.ssl.trustStorePassword", "baseball");
 
         //Lets pretend they typed in 127.0.0.1:8415
         try {

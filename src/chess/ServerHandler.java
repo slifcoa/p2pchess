@@ -34,7 +34,7 @@ class ServerHandler implements Runnable{
     protected int           connSockNum     =   8415;
     protected ServerSocket  myServer;
 
-    protected SSLSocket     clientSocket;
+   // protected SSLSocket     clientSocket;
 
     //protected Socket        clientSocket;
     protected SSLSocket clientSocket;
@@ -57,72 +57,68 @@ class ServerHandler implements Runnable{
             this.runningThread = Thread.currentThread();
         }
 
-        {
             // Registering the JSSE provider
             Security.addProvider(new Provider());
 
             //Specifying the Keystore details
-            System.setProperty("javax.net.ssl.keyStore","myKey.ks");
-            System.setProperty("javax.net.ssl.keyStorePassword","baseball");
+            System.setProperty("javax.net.ssl.keyStore", "myKey.ks");
+            System.setProperty("javax.net.ssl.keyStorePassword", "baseball");
 
             // Enable debugging to view the handshake and communication which happens between the SSLClient and the SSLServer
             // System.setProperty("javax.net.debug","all");
-        }
-        try{
 
-        //Registering the JSSE provider
-        Security.addProvider(new Provider());
+            //Registering the JSSE provider
+            Security.addProvider(new Provider());
 
-        //Specifying the Keystore details
-        System.getProperty("javax.net.ssl.trustStore", "myKey.ks");
-        System.getProperty("javax.net.ssl.trustStorePassword", "baseball");
+            //Specifying the Keystore details
+            System.getProperty("javax.net.ssl.trustStore", "myKey.ks");
+            System.getProperty("javax.net.ssl.trustStorePassword", "baseball");
 
-        try{
-            //myServer = new ServerSocket(this.connSockNum);
-            ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
-            myServer = socketFactory.createServerSocket(this.connSockNum);
-        } catch (IOException e){
-            throw new RuntimeException("Cannot Open Port 8415", e);
-        }
-        outputMessage("Hosting Game on \n " + myServer.getInetAddress() + ":8415");
-        while(isRunning){
             try {
-
-                clientSocket = (SSLSocket) this.myServer.accept();
-                //clientSocket = this.myServer.accept();
-                clientSocket = (SSLSocket)this.myServer.accept();
-            } catch (IOException e){
-                throw new RuntimeException("Error Accepting Client", e);
+                //myServer = new ServerSocket(this.connSockNum);
+                ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
+                myServer = socketFactory.createServerSocket(this.connSockNum);
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot Open Port 8415", e);
             }
-            try{
-                processClientRequest(clientSocket);
+            outputMessage("Hosting Game on \n " + myServer.getInetAddress() + ":8415");
+            while (isRunning) {
+                try {
 
-            } catch (Exception e){
-                //DO STUFF
+                    clientSocket = (SSLSocket) this.myServer.accept();
+                    //clientSocket = this.myServer.accept();
+                    clientSocket = (SSLSocket) this.myServer.accept();
+                } catch (IOException e) {
+                    throw new RuntimeException("Error Accepting Client", e);
+                }
+                try {
+                    processClientRequest(clientSocket);
+
+                } catch (Exception e) {
+                    //DO STUFF
+                }
             }
         }
-    }
 
     private void processClientRequest(Socket clientSocket)
             throws Exception {
         boolean ClientConnected = true;
-        while(ClientConnected) {
-                DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
+        while (ClientConnected) {
+            DataInputStream inFromClient = new DataInputStream(clientSocket.getInputStream());
 
-                String fromClient="";
-                try {
-                    fromClient = inFromClient.readUTF();
-                } catch (Exception e )
-                {
-                    System.out.print(e.getMessage());
+//            String fromClient = "";
+//            try {
+//                fromClient = inFromClient.readUTF();
+//            } catch (Exception e) {
+//                System.out.print(e.getMessage());
 
                 // String fromClient;
                 //fromClient = inFromClient.readUTF();
 
-                String fromClient="";
+                String fromClient = "";
                 try {
                     fromClient = inFromClient.readUTF();
-                } catch (Exception e){
+                } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
                 DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
@@ -135,7 +131,8 @@ class ServerHandler implements Runnable{
         }
 
 
-    private void outputMessage(String myMessage){
+    private void outputMessage(String myMessage) {
         myOuput.append((myMessage + "\n"));
     }
 }
+
