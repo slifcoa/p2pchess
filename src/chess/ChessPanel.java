@@ -15,6 +15,9 @@ public class ChessPanel extends JPanel {
 	HostConnection hostConn;
 	FindConnection findConn;
 	Boolean isHost = false;
+	String username;
+	Boolean yourTurn;
+
 
 	//menu items for connecting to games
 	private JMenuBar menuBar;
@@ -64,6 +67,7 @@ public class ChessPanel extends JPanel {
 		connectMenu.add(findGameItem);
 
 		this.model = model;
+		this.yourTurn = false;
 
 		ButtonListener buttonListener = new ButtonListener();
 		//set listeners for menu items
@@ -86,10 +90,10 @@ public class ChessPanel extends JPanel {
 		this.buttonpanel = new JPanel(new GridLayout(4,1,16,16));
 		this.buttonpanel.setPreferredSize(new Dimension(200, 300));
 
-		//todo replace this functionality with joptionpane that hosts on specified port
-		hostTest = new JButton("Host on port 8415");
-		this.hostTest.addActionListener(buttonListener);
-		this.buttonpanel.add(this.hostTest);
+//		//todo replace this functionality with joptionpane that hosts on specified port
+//		hostTest = new JButton("Host on port 8415");
+//		this.hostTest.addActionListener(buttonListener);
+//		this.buttonpanel.add(this.hostTest);
 
 		//Create and add Reset Button
 		reset = new JButton("Reset Game");
@@ -208,8 +212,20 @@ public class ChessPanel extends JPanel {
 	}
 
 	//Updates turn JLabel when invoked
-	private void setTurn(){
-		turn.setText("Turn: " + model.currentPlayer());
+	public void setTurn(){
+		//turn.setText("Turn: " + model.currentPlayer());
+		if(isHost){
+			if(model.currentPlayer() == Player.WHITE){
+				turn.setText("It's Your Turn");
+			}
+			else{turn.setText("Opponent's turn");}
+		} else{
+			if(model.currentPlayer() == Player.BLACK){
+				turn.setText("It's Your Turn");
+			}
+			else{turn.setText("Opponent's turn");}
+		}
+
 	}
 
 	//Promotes the pawn Icon to a queen Icon
@@ -240,6 +256,13 @@ public class ChessPanel extends JPanel {
 		this.buttonAt(m.from).setIcon(null);
 		//add the move to history
         this.moveHistory.add(m);
+        this.model.setNextPlayer();
+        this.setTurn();
+		if(this.yourTurn){
+			this.yourTurn = false;
+		} else{
+			this.yourTurn = true;
+		}
 	}
 
 	//Erases the last move
@@ -254,7 +277,7 @@ public class ChessPanel extends JPanel {
 			buttonAt(m.to).setIcon(m.toPieceIcon);
 
 			model.setNextPlayer();
-			setTurn();
+			this.setTurn();
 			moveHistory.remove(m);
 		}
 	}
@@ -371,49 +394,16 @@ public class ChessPanel extends JPanel {
 	/*Call this method after player selects host game and enters in port number to host on*/
 	public void hostGame(int port) throws Exception {
 
-//		myServer = new ServerHandler(this.output,this);
-//		myServer.connSockNum = port;
-//		Thread newThread = new Thread(myServer);
-//		newThread.start();
 		hostConn = new HostConnection(this.output, this);
 		hostConn.connSockNum = port;
 		Thread newThread = new Thread(hostConn);
 		newThread.start();
 		isHost = true;
 
-		/*
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				ConnectionHandler conn = new ConnectionHandler();
-				//main param saying they opted to host a game
-				String[] host = {"host"};
-				try {
-					serverConnHandler.setServer(port);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				conn.setServerConn(serverConnHandler);
-				try {
-					//connectoin handler main method, so the GUI doesnt freeze
-					conn.main(host);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}).start();
-		*/
 	}
 
 	public void connectGame(String IP, int port){
-//		if(meClient == null){
-//			meClient = new ClientHandler(IP, port);
-//			meClient.connect();
-//		}
-//		else{
-//			outputMessage("Already Connected");
-//			meClient.sendToServer("You there?");
-//		}
+
 		findConn = new FindConnection(IP, port, this.output, this);
 		Thread newThread2 = new Thread(findConn);
 		newThread2.start();
@@ -426,6 +416,7 @@ public class ChessPanel extends JPanel {
 		Square eventSquare;
 		Color backgroundColor;
 		boolean fromTo;
+		//String username;
 
 		public ButtonListener() {
 			fromTo = false;
@@ -451,12 +442,11 @@ public class ChessPanel extends JPanel {
 						hostGame(Integer.parseInt(portNumber.getText()));
 						hostGameItem.setEnabled(false);
 						findGameItem.setEnabled(false);
+						username = userName.getText();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} //dont really need this seecond part else {
-//					System.out.println("User canceled / closed the dialog, result = " + result);
-//				}
+				}
 			}
 
 			if(findGameItem == event.getSource()){
@@ -479,21 +469,12 @@ public class ChessPanel extends JPanel {
 						connectGame(serverAddress.getText(), Integer.parseInt(portNumber.getText()));
 						hostGameItem.setEnabled(false);
 						findGameItem.setEnabled(false);
+						username = userName.getText();
+						setTurn();
+						findConn.sendTurn();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} //dont really need this seecond part else {
-//					System.out.println("User canceled / closed the dialog, result = " + result);
-//				}
-			}
-
-
-			//todo delete this button later
-			if(hostTest == event.getSource()){
-				try {
-					hostGame(8415);
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			}
 
@@ -523,11 +504,11 @@ public class ChessPanel extends JPanel {
 				undoMove();
 			}
 			if (input == event.getSource()){
-				outputMessage(input.getText());
+				outputMessage("You: " +  input.getText());
 				if(isHost)
-					hostConn.sendChat(input.getText());
+					hostConn.sendChat(username + ": " + input.getText());
 				else
-					findConn.sendChat(input.getText());
+					findConn.sendChat(username + ": " + input.getText());
 
 				input.setText("");
 			}
@@ -539,15 +520,6 @@ public class ChessPanel extends JPanel {
 				}
 				else
 					findConn.meClient.sendToServer("Move");
-//				connectGame();
-//				if(meClient == null){
-//					meClient = new ClientHandler("localhost", 8417);
-//					meClient.connect();
-//				}
-//				else{
-//					outputMessage("Already Connected");
-//					meClient.sendToServer("You there?");
-//				}
 
 			}
 
@@ -559,7 +531,8 @@ public class ChessPanel extends JPanel {
 
 					if (model.pieceAt(fromSquare) != null) {
 
-						if (model.pieceAt(fromSquare).player() == model.currentPlayer()) {
+						if (model.pieceAt(fromSquare).player() == Player.WHITE && yourTurn) {
+//						if (model.pieceAt(fromSquare).player() == model.currentPlayer()) {
 							backgroundColor = buttonAt(fromSquare).getBackground();
 							buttonAt(fromSquare).setBackground(Color.BLUE);
 							messageCode = 0;
@@ -586,14 +559,14 @@ public class ChessPanel extends JPanel {
 						move(thisMove);
 						//send move over connection
 						if(isHost){
-							hostConn.sendMove(fromSquare.row, fromSquare.column, toSquare.row, toSquare.column);
+							hostConn.sendMove(7 - fromSquare.row,  7 - fromSquare.column, 7 - toSquare.row, 7 - toSquare.column);
 						}
 						else {
-							findConn.sendMove(fromSquare.row, fromSquare.column, toSquare.row, toSquare.column);
+							findConn.sendMove(7 - fromSquare.row, 7 - fromSquare.column, 7 - toSquare.row, 7 - toSquare.column);
 						}
 
 
-                        model.setNextPlayer();
+                       // model.setNextPlayer();
 
 						if (model.inCheck(model.currentPlayer())) {
 							messageCode = 2;
@@ -607,7 +580,7 @@ public class ChessPanel extends JPanel {
 					}
 					fromTo = false;
 					displayMessage(model.pieceAt(fromSquare));
-					setTurn();
+
 				}
 			}
 		}
@@ -617,6 +590,7 @@ public class ChessPanel extends JPanel {
 	public void outputMessage(String myMessage){
 		output.append(myMessage + "\n");
 	}
+
 	public void movePiece(int x1, int y1, int x2, int y2){
 		board[x1][y1].doClick();
 		board[x2][y2].doClick();

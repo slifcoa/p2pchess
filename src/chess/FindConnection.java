@@ -97,6 +97,9 @@ class FindConnection implements Runnable {
             if(fromClient.startsWith("chat")){
                 outputMessage(fromClient.substring(4));
             }
+            if(fromClient.startsWith("turn")){
+                myBoard.setTurn();
+            }
 
 
 
@@ -116,6 +119,9 @@ class FindConnection implements Runnable {
     public void sendMove(int x1, int y1, int x2, int y2){
         String message = "move" + x1 + "" + y1 + "" + x2 + "" + y2;
         meClient.sendToServer(message);
+    }
+    public void sendTurn(){
+        meClient.sendToServer("turn");
     }
 
 }

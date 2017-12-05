@@ -14,6 +14,7 @@ public class ChessModel implements IChessModel {
 	private ArrayList<IChessPiece> wPieces;
 
 	private int messageCode;
+	private String username;
 
 	public ChessModel() {
 
@@ -248,6 +249,9 @@ public class ChessModel implements IChessModel {
 
 	public void setNextPlayer() {
 		player = player.next();
+	}
+	public void setPlayerUsername(String username){
+
 	}
 
 	public int getMessage() {

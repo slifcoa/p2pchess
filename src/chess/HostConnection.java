@@ -95,9 +95,10 @@ class HostConnection implements Runnable{
             if(fromClient.startsWith("chat")){
                 outputMessage(fromClient.substring(4));
             }
-
-
-
+            if(fromClient.startsWith("turn")){
+                this.myBoard.setTurn();
+                this.myBoard.yourTurn = true;
+            }
 
             outToClient.writeUTF("Server 404OK");
         }
