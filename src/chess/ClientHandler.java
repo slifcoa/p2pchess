@@ -1,25 +1,41 @@
 package chess;
 
+import com.sun.net.ssl.internal.ssl.Provider;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.security.Security;
 
 /**
  * Created by phil on 12/3/17.
  */
 public class ClientHandler {
     protected boolean           connected       =   false;
-    protected Socket            clientSocket;
+    protected SSLSocket clientSocket;
     protected DataInputStream   myInput;
     protected DataOutputStream  myOutput;
 
 
     public boolean connect(){
+        {
+            // Registering the JSSE provider
+            Security.addProvider(new Provider());
+
+            //Specifying the Keystore details
+            System.setProperty("javax.net.ssl.trustStore","myKey.ks");
+            System.setProperty("javax.net.ssl.trustStorePassword","baseball");
+
+            // Enable debugging to view the handshake and communication which happens between the SSLClient and the SSLServer
+            // System.setProperty("javax.net.debug","all");
+        }
         //Lets pretend they typed in 127.0.0.1:8415
         try {
-            clientSocket = new Socket("localhost", 8415);
+            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            clientSocket = (SSLSocket) sslSocketFactory.createSocket("127.0.0.1",8415);
             myOutput = new DataOutputStream(clientSocket.getOutputStream());
             myInput = new DataInputStream( new BufferedInputStream( clientSocket.getInputStream()));
             myOutput.writeUTF("CONNECTED YO\n");
